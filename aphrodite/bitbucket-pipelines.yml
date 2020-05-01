@@ -1,0 +1,53 @@
+image: node:10
+
+pipelines:
+  default:
+    - step:
+        caches:
+          - node
+        script:
+          - npm install
+          - npm run build
+
+  branches:
+    dev:
+      - step:
+          name: build
+          caches:
+            - node
+          script:
+            - npm install
+            - npm run build
+          artifacts:
+            - .next/**
+      - step:
+          name: deploy
+          trigger: manual
+          deployment: dev
+          script:
+            - pipe: atlassian/google-app-engine-deploy:0.4.1
+              variables:
+                KEY_FILE: $PROJECT_KEY
+                PROJECT: $PROJECT_ID
+                DEPLOYABLES: service.yaml
+
+    master:
+      - step:
+          name: build
+          caches:
+            - node
+          script:
+            - npm install
+            - npm run build
+          artifacts:
+            - .next/**
+      - step:
+          name: deploy
+          trigger: manual
+          deployment: prod
+          script:
+            - pipe: atlassian/google-app-engine-deploy:0.4.1
+              variables:
+                KEY_FILE: $PROJECT_KEY
+                PROJECT: $PROJECT_ID
+                DEPLOYABLES: service.yaml

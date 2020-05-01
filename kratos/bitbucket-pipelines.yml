@@ -1,0 +1,87 @@
+image: python:3.7
+
+pipelines:
+  branches:
+    dev:
+      - step:
+          name: freezing
+          caches:
+            - pip
+          script:
+            - pip install pipenv
+            - pipenv lock -r > requirements.txt
+          artifacts:
+            - requirements.txt
+      - step:
+          name: collect static
+          caches:
+            - pip
+          script:
+            - pip install -r requirements.txt
+            - python manage.py collectstatic
+          artifacts:
+            - static/**
+      - step:
+          name: migrate
+          deployment: dev-db
+          caches:
+            - pip
+          script:
+            - pip install -r requirements.txt
+            - python manage.py reset_db --noinput
+            - python manage.py migrate
+            - python manage.py loaddata gql
+      - step:
+          name: deploy
+          deployment: dev
+          script:
+            - ./gen_envs.sh > envs.yaml
+            - cat envs.yaml
+            - pipe: atlassian/google-app-engine-deploy:0.4.1
+              variables:
+                KEY_FILE: $PROJECT_KEY
+                PROJECT: $PROJECT_ID
+                VERSION: $BITBUCKET_BUILD_NUMBER
+                DEPLOYABLES: service.yaml
+    master:
+      - step:
+          name: freezing
+          caches:
+            - pip
+          script:
+            - pip install pipenv
+            - pipenv lock -r > requirements.txt
+          artifacts:
+            - requirements.txt
+      - step:
+          name: collect static
+          caches:
+            - pip
+          script:
+            - pip install -r requirements.txt
+            - python manage.py collectstatic
+          artifacts:
+            - static/**
+      - step:
+          name: migrate
+          trigger: manual
+          deployment: prod-db
+          caches:
+            - pip
+          script:
+            - pip install -r requirements.txt
+            - python manage.py migrate
+      - step:
+          name: deploy
+          trigger: manual
+          deployment: prod
+          script:
+            - ./gen_envs.sh > envs.yaml
+            - cat envs.yaml
+            - pipe: atlassian/google-app-engine-deploy:0.4.1
+              variables:
+                KEY_FILE: $PROJECT_KEY
+                PROJECT: $PROJECT_ID
+                VERSION: $BITBUCKET_BUILD_NUMBER
+                DEPLOYABLES: service.yaml
+
