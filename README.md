@@ -7,3 +7,4 @@ We have 5 different repos which were originally hosted on bitbucket.
 3. kratos - Backend
 4. landing - Landing page
 5. submission - Submission files (Poster & Final Report)
+6. API documentation - https://eventbuilder.docs.apiary.io/
