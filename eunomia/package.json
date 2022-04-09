@@ -16,7 +16,7 @@
     "firebase": "^7.1.0",
     "formik": "^1.5.8",
     "formik-material-ui": "0.0.22",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "next": "^9.0.7",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
